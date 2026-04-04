@@ -1,1 +1,248 @@
-This is a test file.
+I am building a project called **BankBot AI**, a domain-specific banking chatbot created by fine-tuning a large language model.
+
+I want you to generate a **detailed, well-structured experimental report (8–10 pages)** that I can directly include in my academic submission.
+
+⚠️ IMPORTANT INSTRUCTIONS:
+
+* Do NOT focus on UI/Frontend
+* Focus ONLY on core implementation, model, dataset, and fine-tuning
+* Use simple but professional language (easy to understand, not overly complex)
+* Structure it like a proper academic/technical report
+* Include headings, subheadings, bullet points, and explanations
+* Add realistic explanations of metrics, comparisons, and results
+* Make it sound like a real project report (not generic AI text)
+
+---
+
+# 📌 PROJECT CONTEXT
+
+This project is a **banking chatbot** built using:
+
+* Base Model: Google Gemma 2B (instruction-tuned)
+* Fine-tuning Method: QLoRA (4-bit quantization using bitsandbytes)
+* Frameworks: Hugging Face Transformers, PEFT, PyTorch
+* Task: Domain adaptation for banking-related queries
+
+The chatbot compares:
+
+1. Base model response
+2. Fine-tuned model response
+
+---
+
+# 📌 WHAT THE REPORT MUST INCLUDE
+
+## 1. Problem Definition
+
+* Explain the need for domain-specific chatbots in banking
+* Limitations of general-purpose LLMs
+* Why fine-tuning is required
+* Real-world relevance (fraud, UPI, card issues, etc.)
+
+---
+
+## 2. Dataset Creation Methodology
+
+* Explain how dataset was created (synthetic + curated)
+* Structure:
+
+  * Instruction
+  * Input (optional)
+  * Output (response)
+* Mention:
+
+  * Number of samples (~800–1500)
+  * Diversity (UPI, fraud, card issues, account issues)
+* Explain preprocessing:
+
+  * Cleaning
+  * Formatting into instruction-tuning format
+  * Tokenization
+* Show example dataset entries
+
+---
+
+## 3. Dataset Documentation
+
+* Explain:
+
+  * Data sources (manual + synthetic generation)
+  * Categories of queries
+  * Quality control
+* Mention advantages:
+
+  * Domain relevance
+  * Structured responses
+* Mention limitations:
+
+  * Synthetic bias
+  * Limited real-world noise
+
+---
+
+## 4. Model Architecture
+
+* Explain:
+
+  * Base model: Gemma 2B
+  * Transformer architecture (brief)
+  * Why Gemma was chosen
+* Explain:
+
+  * Instruction tuning concept
+  * Tokenizer role
+
+---
+
+## 5. Fine-Tuning Method (VERY IMPORTANT)
+
+Explain QLoRA in detail:
+
+* What is LoRA
+* What is QLoRA
+* Why 4-bit quantization is used
+* Benefits:
+
+  * Low memory usage
+  * Faster training
+* Explain:
+
+  * Adapter layers
+  * Trainable parameters vs frozen parameters
+
+---
+
+## 6. Training Configuration
+
+Include:
+
+* Batch size
+* Learning rate
+* Epochs
+* Optimizer (AdamW)
+* Loss function
+* Hardware (GPU with 4GB VRAM)
+* Libraries used
+
+Explain WHY these values were chosen
+
+---
+
+## 7. Training Pipeline
+
+Explain step-by-step:
+
+1. Load base model
+2. Apply quantization (4-bit)
+3. Add LoRA adapters
+4. Prepare dataset
+5. Tokenization
+6. Training loop
+7. Save adapter model
+
+---
+
+## 8. Evaluation Metrics (VERY IMPORTANT)
+
+Explain and include:
+
+### Quantitative:
+
+* Accuracy (task correctness)
+* BLEU score
+* ROUGE score
+
+### Qualitative:
+
+* Human evaluation
+* Response relevance
+* Domain correctness
+
+### Task-specific:
+
+* Banking intent accuracy
+* Error reduction rate
+
+Explain how each metric is calculated
+
+---
+
+## 9. Experimental Results
+
+* Compare base vs fine-tuned model
+* Show:
+
+  * Table of metrics
+  * Improvements
+* Example comparisons:
+
+  * Base model → generic response
+  * Fine-tuned → domain-specific response
+
+---
+
+## 10. Example Outputs
+
+Include:
+
+* Multiple examples:
+
+  * UPI failure
+  * Fraud case
+  * Card blocked
+* Show:
+
+  * Base response
+  * Fine-tuned response
+* Explain improvement clearly
+
+---
+
+## 11. Analysis & Discussion
+
+* Why fine-tuned model performs better
+* Observations
+* Trade-offs
+
+---
+
+## 12. Limitations
+
+* Dataset limitations
+* Model hallucination risks
+* Domain coverage gaps
+
+---
+
+## 13. Future Improvements
+
+* Larger dataset
+* Better evaluation metrics
+* Real-world deployment
+* RAG integration
+
+---
+
+# 📌 OUTPUT FORMAT
+
+* Proper headings (H1, H2, H3 style)
+* Paragraph + bullet mix
+* Include tables where needed
+* Length: ~2500–4000 words
+* Make it look like a polished academic report
+
+---
+
+# 📌 EXTRA IMPORTANT
+
+* Make the explanation of **QLoRA and fine-tuning VERY CLEAR**
+* Make comparisons realistic (not exaggerated)
+* Use examples similar to banking queries:
+
+  * “UPI failed but money deducted”
+  * “Unauthorized transaction”
+  * “Card blocked”
+
+---
+
+Generate the complete report.

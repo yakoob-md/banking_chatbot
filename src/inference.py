@@ -9,6 +9,7 @@ Or import generate_response() for use in app.py.
 
 import os
 import sys
+from transformers import BitsAndBytesConfig
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -50,6 +51,15 @@ def _unload_finetuned():
     gc.collect()
     torch.cuda.empty_cache()
 
+def get_bnb_config():
+    if not torch.cuda.is_available():
+        return None  # CPU fallback
+
+    return BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.float16
+    )
+
 
 def generate_base_response(user_input: str) -> str:
     """
@@ -58,8 +68,10 @@ def generate_base_response(user_input: str) -> str:
     generates, then frees it so fine-tuned can be reloaded next call.
     """
     import gc
-    from src.utils import BASE_MODEL_ID, get_bnb_config
+    # from src.utils import BASE_MODEL_ID, get_bnb_config
+    from src.utils import BASE_MODEL_ID
     from transformers import AutoModelForCausalLM, AutoTokenizer
+
 
     # Step 1: Free the cached fine-tuned model so we have VRAM headroom
     _unload_finetuned()
@@ -68,11 +80,16 @@ def generate_base_response(user_input: str) -> str:
     if base_tokenizer.pad_token is None:
         base_tokenizer.pad_token = base_tokenizer.eos_token
 
+    # Detect hardware for CPU fallback logic
+    device_map = "auto" if torch.cuda.is_available() else "cpu"
+    # Use float32 for CPU compatibility, float16 for GPU efficiency
+    compute_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
     base_model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL_ID,
-        quantization_config=get_bnb_config(),
-        device_map="auto",
-        torch_dtype=torch.float16,
+        quantization_config=get_bnb_config(),  # returns None on CPU
+        device_map=device_map,
+        torch_dtype=compute_dtype,
         trust_remote_code=True,
     )
     base_model.eval()
@@ -146,6 +163,7 @@ def compare_base_vs_finetuned(user_input: str):
     Useful for evaluation and academic demonstration.
     """
     from src.utils import BASE_MODEL_ID, get_bnb_config
+    from src.utils import BASE_MODEL_ID
     from transformers import AutoModelForCausalLM, AutoTokenizer
     import torch
 
@@ -156,11 +174,15 @@ def compare_base_vs_finetuned(user_input: str):
     if base_tokenizer.pad_token is None:
         base_tokenizer.pad_token = base_tokenizer.eos_token
 
+    # Detect hardware for CPU fallback logic
+    device_map = "auto" if torch.cuda.is_available() else "cpu"
+    compute_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
     base_model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL_ID,
-        quantization_config=get_bnb_config(),
-        device_map="auto",
-        torch_dtype=torch.float16,
+        quantization_config=get_bnb_config(),  # returns None on CPU
+        device_map=device_map,
+        torch_dtype=compute_dtype,
         trust_remote_code=True,
     )
     base_model.eval()

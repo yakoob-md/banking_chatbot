@@ -26,6 +26,10 @@ BASE_MODEL_ID = "google/gemma-2b-it"   # instruction-tuned variant of Gemma 2B
 # Quantization config (4-bit QLoRA)
 # --------------------------------------------------------------------------- #
 def get_bnb_config() -> BitsAndBytesConfig:
+    # bitsandbytes (4-bit/8-bit) requires CUDA. Fallback to None if not available.
+    if not torch.cuda.is_available():
+        return None
+
     return BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
@@ -63,15 +67,24 @@ def load_base_model_for_training():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # Determine device and dtype
+    device_map = "auto" if torch.cuda.is_available() else "cpu"
+    # Use float32 on CPU for better compatibility; float16 on GPU
+    compute_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
     model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL_ID,
         quantization_config=get_bnb_config(),
-        device_map="auto",
+        device_map=device_map,
         trust_remote_code=True,
-        torch_dtype=torch.float16,
+        torch_dtype=compute_dtype,
     )
 
-    model = prepare_model_for_kbit_training(model)
+    # model = prepare_model_for_kbit_training(model)
+
+    if torch.cuda.is_available():
+        model = prepare_model_for_kbit_training(model)
+
     model = get_peft_model(model, get_lora_config())
     model.print_trainable_parameters()
 
@@ -94,12 +107,17 @@ def load_finetuned_model(adapter_dir: str = ADAPTER_DIR):
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # Determine device and dtype
+    device_map = "auto" if torch.cuda.is_available() else "cpu"
+    compute_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
+    # Load base model (without quantization if on CPU)
     base_model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL_ID,
-        quantization_config=get_bnb_config(),
-        device_map="auto",
+        quantization_config=get_bnb_config(), # Returns None if no CUDA
+        device_map=device_map,
+        torch_dtype=compute_dtype,
         trust_remote_code=True,
-        torch_dtype=torch.float16,
     )
 
     model = PeftModel.from_pretrained(base_model, adapter_dir)
