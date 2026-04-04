@@ -1,0 +1,25 @@
+# ─── Core ML ────────────────────────────────────────────────────────────────
+torch==2.2.0
+torchvision==0.17.0
+torchaudio==2.2.0
+# Install CUDA-enabled wheel separately if needed:
+#   pip install torch==2.2.0+cu121 -f https://download.pytorch.org/whl/torch_stable.html
+
+# ─── HuggingFace stack ───────────────────────────────────────────────────────
+transformers==4.40.1
+datasets==2.19.0
+accelerate==0.29.3
+peft==0.10.0
+trl==0.8.6
+
+# ─── Quantization ────────────────────────────────────────────────────────────
+bitsandbytes==0.43.1
+
+# ─── Web UI ──────────────────────────────────────────────────────────────────
+flask==3.0.3
+
+# ─── Utilities ───────────────────────────────────────────────────────────────
+sentencepiece==0.2.0        # required by Gemma tokenizer
+protobuf==4.25.3
+scipy==1.13.0
+einops==0.7.0

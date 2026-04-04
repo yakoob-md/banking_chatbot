@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BankBot AI – Model Comparison</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --base-clr:    #8b5cf6;
+      --ft-clr:      #06b6d4;
+      --bg:          #080c14;
+      --surface:     #0e1623;
+      --surface2:    #162032;
+      --surface3:    #1c2a40;
+      --border:      #1e2d45;
+      --border2:     #253650;
+      --text:        #e2e8f0;
+      --muted:       #64748b;
+      --muted2:      #94a3b8;
+      --accent:      #3b82f6;
+      --accent-glow: rgba(59,130,246,0.18);
+    }
+
+    /* ── Root layout: full screen, nothing scrolls at page level ── */
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ════════════════════════════════════════
+       TOP NAV
+    ════════════════════════════════════════ */
+    .top-nav {
+      flex-shrink: 0;
+      height: 58px;
+      background: rgba(14,22,35,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 10;
+    }
+    .nav-logo {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+    .nav-title { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+    .nav-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+
+    .nav-pill {
+      margin-left: auto;
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 4px;
+      gap: 4px;
+    }
+    .nav-tab {
+      padding: 6px 18px;
+      border-radius: 24px;
+      border: none;
+      background: transparent;
+      color: var(--muted2);
+      font-size: 0.78rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-tab.active {
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.35);
+    }
+    .nav-tab:hover:not(.active) { color: var(--text); }
+
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.72rem; color: #4ade80;
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      margin-left: 12px;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    /* ════════════════════════════════════════
+       BODY ROW (sidebar + chat)
+    ════════════════════════════════════════ */
+    .body-row {
+      flex: 1;
+      display: flex;
+      min-height: 0;   /* critical — lets children shrink below content size */
+    }
+
+    /* ════════════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════════════ */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;  /* clip, inner scrolls */
+    }
+    .sidebar-head {
+      flex-shrink: 0;
+      padding: 16px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-head h2 {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .sidebar-head p {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 10px 16px;
+    }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    .demo-section { margin-bottom: 6px; }
+    .demo-section-title {
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 8px 8px 4px;
+    }
+    .demo-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      color: var(--muted2);
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      line-height: 1.4;
+    }
+    .demo-btn .q-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+    .demo-btn:hover {
+      background: var(--surface2);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .demo-btn:active { transform: scale(0.98); }
+
+    /* ════════════════════════════════════════
+       CHAT PANEL
+    ════════════════════════════════════════ */
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* Messages scrollable area */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .messages::-webkit-scrollbar { width: 5px; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 6px; }
+
+    /* Welcome */
+    .welcome {
+      margin: auto;
+      text-align: center;
+      max-width: 560px;
+      padding: 32px 24px;
+    }
+    .welcome-icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 32px rgba(124,58,237,0.3);
+    }
+    .welcome h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; }
+    .welcome p  { font-size: 0.85rem; color: var(--muted2); line-height: 1.65; }
+    .welcome-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .wc {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .wc:hover { background: var(--surface3); border-color: var(--border2); transform: translateY(-1px); }
+    .wc .wc-icon { font-size: 18px; margin-bottom: 6px; }
+    .wc .wc-text { font-size: 0.78rem; color: var(--muted2); line-height: 1.4; }
+
+    /* User bubble */
+    .row-user {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .bubble-user {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: #fff;
+      padding: 11px 16px;
+      border-radius: 18px 18px 4px 18px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      max-width: 55%;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 4px 16px rgba(29,78,216,0.25);
+    }
+    .avatar-user {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+
+    /* Compare card */
+    .compare-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    .card-question-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 18px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+    .card-question-bar .q-label { color: var(--muted); }
+    .card-question-bar .q-text  { color: var(--text); font-weight: 500; }
+
+    .response-grid {
+      display: grid;
+    }
+    .response-grid.two-col { grid-template-columns: 1fr 1fr; }
+    .response-grid.one-col { grid-template-columns: 1fr; }
+
+    .resp-col {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .resp-col.left { border-right: 1px solid var(--border); }
+
+    .resp-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .badge-base { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+    .badge-ft   { background: rgba(6,182,212,0.12);   color: #67e8f9; border: 1px solid rgba(6,182,212,0.25); }
+
+    .resp-subtitle { font-size: 0.68rem; color: var(--muted); }
+
+    .resp-body {
+      font-size: 0.855rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .resp-body strong { color: #e2e8f0; }
+
+    /* Shimmer skeleton */
+    .skeleton { display: flex; flex-direction: column; gap: 9px; }
+    .skel-line {
+      height: 11px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    .skel-line.w-90 { width: 90%; }
+    .skel-line.w-75 { width: 75%; }
+    .skel-line.w-55 { width: 55%; }
+    .skel-line.w-80 { width: 80%; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ════════════════════════════════════════
+       INPUT BAR
+    ════════════════════════════════════════ */
+    .input-bar {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      padding: 14px 24px 10px;
+      background: rgba(14,22,35,0.97);
+      backdrop-filter: blur(8px);
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    #userInput {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-size: 0.88rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      outline: none;
+      resize: none;
+      line-height: 1.5;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      min-height: 44px;
+      max-height: 120px;
+    }
+    #userInput::placeholder { color: var(--muted); }
+    #userInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    #sendBtn {
+      flex-shrink: 0;
+      height: 44px;
+      padding: 0 22px;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 7px;
+      transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+    }
+    #sendBtn:hover   { opacity: 0.9; box-shadow: 0 6px 20px rgba(124,58,237,0.45); }
+    #sendBtn:active  { transform: scale(0.97); }
+    #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+    .disclaimer {
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--muted);
+      padding-top: 8px;
+    }
+    .disclaimer span { color: #f59e0b; }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── TOP NAV ── -->
+  <nav class="top-nav">
+    <div class="nav-logo">🏦</div>
+    <div>
+      <div class="nav-title">BankBot AI</div>
+      <div class="nav-sub">Gemma 2B · QLoRA Fine-Tuned</div>
+    </div>
+    <div class="nav-pill">
+      <button class="nav-tab active" id="tabCompare" onclick="setMode('compare')">⚖️ Compare Models</button>
+      <button class="nav-tab" id="tabFT" onclick="setMode('ft')">✨ Fine-Tuned Only</button>
+    </div>
+    <div class="status-badge">
+      <span class="status-dot"></span>
+      Online
+    </div>
+  </nav>
+
+  <!-- ── BODY ROW ── -->
+  <div class="body-row">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h2>💡 Demo Questions</h2>
+        <p>Click any to test instantly</p>
+      </div>
+      <div class="sidebar-scroll">
+
+        <div class="demo-section">
+          <div class="demo-section-title">🃏 Card Issues</div>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>I lost my debit card, what should I do?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>My card is blocked. How do I unblock it?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>Can I use my debit card internationally?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>How do I increase my card's transaction limit?</button>
+        </div>
+
+        <div class="demo-section">
+          <div class="demo-section-title">🔒 Fraud & Security</div>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>Someone made an unauthorized transaction on my account.</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>I received a phishing SMS asking for my OTP. What do I do?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>How do I report a suspicious transaction?</button>
+        </div>
+
+        <div class="demo-section">
+          <div class="demo-section-title">💸 Transactions</div>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>My UPI payment failed but money was deducted.</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>How do I reverse a wrong bank transfer?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>What is the daily transaction limit for NEFT?</button>
+        </div>
+
+        <div class="demo-section">
+          <div class="demo-section-title">🏦 Account Management</div>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>How do I check my account balance?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>I forgot my internet banking password. How do I reset it?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>How do I update my mobile number linked to my bank account?</button>
+        </div>
+
+        <div class="demo-section">
+          <div class="demo-section-title">🌍 International</div>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>How do I enable international transactions on my card?</button>
+          <button class="demo-btn" onclick="useDemo(this)"><span class="q-icon">•</span>What are the charges for foreign currency transactions?</button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- CHAT PANEL -->
+    <div class="chat-panel">
+
+      <div class="messages" id="messages">
+        <!-- Welcome -->
+        <div class="welcome" id="welcomeCard">
+          <div class="welcome-icon">🤖</div>
+          <h2>Base Model vs Fine-Tuned — See the Difference</h2>
+          <p>Ask any banking question. The <strong style="color:#a78bfa">Base Gemma 2B</strong> and the <strong style="color:#67e8f9">Fine-Tuned</strong> responses appear side-by-side so you can compare domain adaptation in action.</p>
+          <div class="welcome-cards">
+            <div class="wc" onclick="quickAsk('I lost my debit card, what should I do?')">
+              <div class="wc-icon">🃏</div>
+              <div class="wc-text">Lost debit card procedure</div>
+            </div>
+            <div class="wc" onclick="quickAsk('I received a phishing SMS asking for my OTP.')">
+              <div class="wc-icon">🔒</div>
+              <div class="wc-text">OTP phishing scam response</div>
+            </div>
+            <div class="wc" onclick="quickAsk('My UPI payment failed but money was deducted.')">
+              <div class="wc-icon">💸</div>
+              <div class="wc-text">Failed UPI payment help</div>
+            </div>
+            <div class="wc" onclick="quickAsk('How do I reset my internet banking password?')">
+              <div class="wc-icon">🔑</div>
+              <div class="wc-text">Reset net banking password</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT BAR -->
+      <div class="input-bar">
+        <div class="input-row">
+          <textarea id="userInput" placeholder="Ask a banking question…" rows="1" autocomplete="off"></textarea>
+          <button id="sendBtn" onclick="sendMessage()">
+            <span>Send</span>
+            <span>➤</span>
+          </button>
+        </div>
+        <p class="disclaimer"><span>⚠️</span> Never share your PIN, OTP, or passwords with anyone — including this chatbot.</p>
+      </div>
+
+    </div><!-- /chat-panel -->
+
+  </div><!-- /body-row -->
+
+</div><!-- /app-shell -->
+
+<script>
+  const messagesDiv = document.getElementById("messages");
+  const userInput   = document.getElementById("userInput");
+  const sendBtn     = document.getElementById("sendBtn");
+  let currentMode   = "compare";
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById("tabCompare").classList.toggle("active", mode === "compare");
+    document.getElementById("tabFT").classList.toggle("active", mode === "ft");
+  }
+
+  function scrollToBottom() {
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  function removeWelcome() {
+    const w = document.getElementById("welcomeCard");
+    if (w) w.remove();
+  }
+
+  function esc(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function formatText(text) {
+    return esc(text)
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n(\d+\.)/g, '\n\n$1');
+  }
+
+  function useDemo(btn) {
+    userInput.value = btn.textContent.replace('•','').trim();
+    sendMessage();
+  }
+
+  function quickAsk(q) {
+    userInput.value = q;
+    sendMessage();
+  }
+
+  function appendUserRow(text) {
+    removeWelcome();
+    const row = document.createElement("div");
+    row.className = "row-user";
+    row.innerHTML = `
+      <div class="bubble-user">${esc(text)}</div>
+      <div class="avatar-user">👤</div>
+    `;
+    messagesDiv.appendChild(row);
+    scrollToBottom();
+  }
+
+  function makeSkeleton() {
+    return `
+      <div class="skeleton">
+        <div class="skel-line w-90"></div>
+        <div class="skel-line w-75"></div>
+        <div class="skel-line w-80"></div>
+        <div class="skel-line w-55"></div>
+        <div class="skel-line w-90"></div>
+      </div>`;
+  }
+
+  function appendLoadingCard(question) {
+    const card = document.createElement("div");
+    card.className = "compare-card";
+    card.id = "loadingCard";
+    const isCompare = currentMode === "compare";
+    card.innerHTML = `
+      <div class="card-question-bar">
+        <span class="q-label">❓</span>
+        <span class="q-text">${esc(question)}</span>
+      </div>
+      <div class="response-grid ${isCompare ? 'two-col' : 'one-col'}">
+        ${isCompare ? `
+        <div class="resp-col left">
+          <div class="resp-header">
+            <span class="badge badge-base">🧠 Base Gemma 2B</span>
+          </div>
+          <div class="resp-subtitle">No fine-tuning · Generating…</div>
+          ${makeSkeleton()}
+        </div>` : ''}
+        <div class="resp-col">
+          <div class="resp-header">
+            <span class="badge badge-ft">✨ Fine-Tuned</span>
+          </div>
+          <div class="resp-subtitle">QLoRA Banking · Generating…</div>
+          ${makeSkeleton()}
+        </div>
+      </div>
+    `;
+    messagesDiv.appendChild(card);
+    scrollToBottom();
+    return card;
+  }
+
+  function appendResultCard(question, baseText, ftText) {
+    const isCompare = currentMode === "compare";
+    const card = document.createElement("div");
+    card.className = "compare-card";
+    card.innerHTML = `
+      <div class="card-question-bar">
+        <span class="q-label">❓</span>
+        <span class="q-text">${esc(question)}</span>
+      </div>
+      <div class="response-grid ${isCompare ? 'two-col' : 'one-col'}">
+        ${isCompare ? `
+        <div class="resp-col left">
+          <div class="resp-header">
+            <span class="badge badge-base">🧠 Base Gemma 2B</span>
+          </div>
+          <div class="resp-subtitle">No fine-tuning — general purpose</div>
+          <div class="resp-body">${formatText(baseText)}</div>
+        </div>` : ''}
+        <div class="resp-col">
+          <div class="resp-header">
+            <span class="badge badge-ft">✨ Fine-Tuned</span>
+          </div>
+          <div class="resp-subtitle">QLoRA · Banking domain specialist</div>
+          <div class="resp-body">${formatText(ftText)}</div>
+        </div>
+      </div>
+    `;
+    messagesDiv.appendChild(card);
+    scrollToBottom();
+  }
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text || sendBtn.disabled) return;
+
+    appendUserRow(text);
+    userInput.value = "";
+    userInput.style.height = "auto";
+    sendBtn.disabled = true;
+
+    const loadingCard = appendLoadingCard(text);
+
+    try {
+      const endpoint = currentMode === "compare" ? "/compare" : "/chat";
+      const res  = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await res.json();
+      loadingCard.remove();
+
+      if (currentMode === "compare") {
+        appendResultCard(text, data.base || "⚠️ Error: " + (data.error || "Unknown"), data.finetuned || "⚠️ Error.");
+      } else {
+        appendResultCard(text, "", data.response || "⚠️ No response.");
+      }
+    } catch (err) {
+      loadingCard.remove();
+      appendResultCard(text, "⚠️ Connection error.", "⚠️ Connection error.");
+    } finally {
+      sendBtn.disabled = false;
+      userInput.focus();
+    }
+  }
+
+  userInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  userInput.addEventListener("input", () => {
+    userInput.style.height = "auto";
+    userInput.style.height = Math.min(userInput.scrollHeight, 120) + "px";
+  });
+</script>
+</body>
+</html>
