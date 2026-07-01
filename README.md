@@ -6,8 +6,7 @@ Fine-tuned **Gemma 2B** on a 2 500-sample banking support dataset using **QLoRA*
 (RTX 2050 or equivalent).
 
 ---
-hh
-
+h
 ## 📁 Project Structure h
 
 ```
