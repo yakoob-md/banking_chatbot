@@ -4,7 +4,7 @@
 Fine-tuned **Gemma 2B** on a 2 500-sample banking support dataset using **QLoRA**
 (4-bit quantisation + LoRA adapters via PEFT), deployable on a 4 GB VRAM GPU
 (RTX 2050 or equivalent).
- ghg
+
 ---
 
 ## 📁 Project Structure 
