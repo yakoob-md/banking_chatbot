@@ -9,7 +9,7 @@ Fine-tuned **Gemma 2B** on a 2 500-sample banking support dataset using **QLoRA*
 
 ## 📁 Project Structure 
 
-```h
+```
 banking_chatbot/
 │── data/
 │   └── dataset.json          ← 2 500 Q&A samples (input / output)
