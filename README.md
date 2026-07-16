@@ -31,7 +31,7 @@ banking_chatbot/
 │── requirements.txt
 └── README.md
 ```
-ghg
+gh
 ---
 
 ## ⚙️ Setup Instructions
